@@ -2,10 +2,22 @@
 #define NOVIT_H
 #include <string>
 
+enum class Element
+{
+    None,
+    Fire,
+    Water,
+    Nature,
+    Earth,
+    Wind,
+    Lightning
+};
+
 class Novit
 {
     private:
         std::string novit_name;
+        Element element;
         int max_hp;
         int current_hp;
         int elemental_attack;
@@ -14,15 +26,19 @@ class Novit
 
     public:
         Novit();
-        Novit(std::string name, int max_hp, int elem_atk, int phys_atk, int speed);
+        Novit(std::string name, Element elem, int max_hp, int elem_atk, int phys_atk, int speed);
         std::string getName() const;
+        virtual ~Novit();
+
+        Element getElement() const;
         int getMaxHp() const;
         int getCurrentHp() const;
         int getElementalAttack() const;
         int getPhysicalAttack() const;
         int getSpeed() const;
-        virtual ~Novit();
 
+        bool isAlive() const;
+        void takeDamage(int damage);
 
 };
 
