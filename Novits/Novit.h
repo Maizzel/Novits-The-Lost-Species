@@ -15,6 +15,8 @@ class Novit
         int physical_attack;
         int speed;
         std::vector<Skill> skills;
+        int shield;
+        bool is_stunned;
 
     public:
         Novit();
@@ -35,6 +37,17 @@ class Novit
         void addSkill(const Skill& skill);
         const std::vector<Skill>& getSkills() const;
 
+        void healFlat(int amount);
+        void healPercent(int percent);
+        void setShield(int amount);
+        int getShield() const;
+        void setStunned(bool stunned);
+        bool getIsStunned() const;
+
+        bool operator<(const Novit& other) const;
+
 };
+
+std::ostream& operator<<(std::ostream& os, const Novit& novit);
 
 #endif // NOVIT_H
