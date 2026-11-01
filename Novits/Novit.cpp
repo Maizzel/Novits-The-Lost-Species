@@ -64,3 +64,16 @@ void Novit::takeDamage(int damage)
         current_hp = 0;
         }
 }
+
+void Novit::addSkill(const Skill& skill)
+{
+    if (skills.size() < 4)
+    {
+        skills.push_back(skill);
+    }
+}
+
+const std::vector<Skill>& Novit::getSkills() const
+{
+    return skills;
+}

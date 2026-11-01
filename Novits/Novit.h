@@ -1,17 +1,8 @@
 #ifndef NOVIT_H
 #define NOVIT_H
 #include <string>
-
-enum class Element
-{
-    None,
-    Fire,
-    Water,
-    Nature,
-    Earth,
-    Wind,
-    Lightning
-};
+#include <vector>
+#include "skill.h"
 
 class Novit
 {
@@ -23,6 +14,7 @@ class Novit
         int elemental_attack;
         int physical_attack;
         int speed;
+        std::vector<Skill> skills;
 
     public:
         Novit();
@@ -39,6 +31,9 @@ class Novit
 
         bool isAlive() const;
         void takeDamage(int damage);
+
+        void addSkill(const Skill& skill);
+        const std::vector<Skill>& getSkills() const;
 
 };
 

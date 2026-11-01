@@ -28,6 +28,8 @@
 		<Unit filename="Novit.cpp" />
 		<Unit filename="Novit.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="novitdatabase.cpp" />
+		<Unit filename="novitdatabase.h" />
 		<Unit filename="skill.cpp" />
 		<Unit filename="skill.h" />
 		<Extensions />

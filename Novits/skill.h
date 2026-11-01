@@ -1,7 +1,17 @@
 #ifndef SKILL_H
 #define SKILL_H
 #include <string>
-#include "Novit.h"
+
+enum class Element
+{
+    None,
+    Fire,
+    Water,
+    Nature,
+    Earth,
+    Wind,
+    Lightning
+};
 
 enum class SkillType
 {
