@@ -1,40 +1,35 @@
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 #include "NovitDatabase.h"
+#include "Player.h"
+#include "EnemyBot.h"
 
 using namespace std;
 
 int main()
 {
-    cout << "--- Novits: Combat Mechanics & Operator Test ---\n\n";
+    srand(time(NULL));
 
-    Novit slowTank = NovitDatabase::getNovitById(10);
-    Novit fastStriker = NovitDatabase::getNovitById(15);
+    cout << "--- Novits: Inheritance & AI Test ---\n\n";
 
-    cout << "Combatants:\n";
-    cout << "Fighter 1: " << slowTank << "\n";
-    cout << "Fighter 2: " << fastStriker << "\n\n";
+    Trainer* f1 = new Player("Maciej");
+    Trainer* f2 = new EnemyBot("Ash (AI)");
 
-    cout << "Speed check for first strike:\n";
-    if (slowTank < fastStriker)
-    {
-        cout << ">> " << fastStriker.getName() << " is faster and strikes first!\n\n";
-    }
-    else
-    {
-        cout << ">> " << slowTank.getName() << " strikes first!\n\n";
-    }
+    cout << "Drafting teams...\n";
+    f1->addNovitToTeam(NovitDatabase::getNovitById(1));
+    f2->addNovitToTeam(NovitDatabase::getNovitById(12));
 
-    cout << "Shield test on " << slowTank.getName() << ":\n";
-    slowTank.setShield(30);
-    cout << slowTank << "\n";
+    cout << "\nTesting Polymorphic chooseAction():\n";
 
-    cout << "Incoming attack with 20 damage:\n";
-    slowTank.takeDamage(20);
-    cout << slowTank << "\n\n";
+    int playerAction = f1->chooseAction();
+    cout << f1->getName() << " chose skill index: " << playerAction << "\n\n";
 
-    cout << "Incoming attack with 25 damage:\n";
-    slowTank.takeDamage(25);
-    cout << slowTank << "\n";
+    int botAction = f2->chooseAction();
+    cout << f2->getName() << " chose skill index: " << botAction << "\n";
+
+    delete f1;
+    delete f2;
 
     return 0;
 }

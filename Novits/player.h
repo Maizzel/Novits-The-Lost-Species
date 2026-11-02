@@ -1,27 +1,15 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <string>
-#include <vector>
-#include "Novit.h"
+#include "Trainer.h"
 
-class Player
+class Player : public Trainer
 {
-    private:
-        std::string player_name;
-        std::vector<Novit> team;
-
     public:
         Player(std::string name);
+        virtual ~Player();
 
-        std::string getName() const;
-        void addNovitToTeam(const Novit& novit);
-        void printTeam() const;
-
-        Novit& getNovit(int index);
-        int getTeamSize() const;
-
-        bool hasAliveNovits() const;
+        int chooseAction() override;
 };
 
 #endif // PLAYER_H

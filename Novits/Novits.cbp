@@ -27,6 +27,8 @@
 		</Build>
 		<Unit filename="Novit.cpp" />
 		<Unit filename="Novit.h" />
+		<Unit filename="enemybot.cpp" />
+		<Unit filename="enemybot.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="novitdatabase.cpp" />
 		<Unit filename="novitdatabase.h" />
@@ -34,6 +36,8 @@
 		<Unit filename="player.h" />
 		<Unit filename="skill.cpp" />
 		<Unit filename="skill.h" />
+		<Unit filename="trainer.cpp" />
+		<Unit filename="trainer.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
