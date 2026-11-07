@@ -141,7 +141,7 @@ std::vector<Novit> NovitDatabase::getAllNovits()
         pool.push_back(n);
     }
     {
-        // ID 15: Don Tornado (Glass Cannon BEZ HEALA: 2x Elemental + Stun)
+        // ID 15: Don Tornado
         Novit n("Don Tornado", Element::Wind, 90, 17, 11, 66);
         n.addSkill(Skill("Torn Up", SkillType::PhysicalAttack, Element::None, 15, 100));
         n.addSkill(Skill("After Breeze", SkillType::ElementalAttack, Element::Wind, 20, 95));

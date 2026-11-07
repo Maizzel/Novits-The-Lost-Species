@@ -29,8 +29,13 @@ int EnemyBot::chooseAction()
     while (!valid_skill)
     {
         random_choice = std::rand() % 4;
-        SkillType chosen_type = active_novit.getSkills()[random_choice].getType();
 
+        if (random_choice == active_novit.getLastUsedSkillIndex())
+        {
+            continue;
+        }
+
+        SkillType chosen_type = active_novit.getSkills()[random_choice].getType();
         bool is_heal = (chosen_type == SkillType::FlatHeal || chosen_type == SkillType::PercentHeal);
         bool has_max_hp = (active_novit.getCurrentHp() == active_novit.getMaxHp());
 

@@ -17,6 +17,7 @@ class Novit
         std::vector<Skill> skills;
         int shield;
         bool is_stunned;
+        int last_used_skill_index;
 
     public:
         Novit();
@@ -46,6 +47,8 @@ class Novit
 
         bool operator<(const Novit& other) const;
 
+        int getLastUsedSkillIndex() const;
+        void setLastUsedSkillIndex(int index);
 };
 
 std::ostream& operator<<(std::ostream& os, const Novit& novit);

@@ -11,14 +11,52 @@ Player::~Player()
 
 int Player::chooseAction()
 {
-    int choice;
-    std::cout << name << ", choose your skill (1-4): ";
-    std::cin >> choice;
-
-    if (choice < 1 || choice > 4)
+    int active_idx = 0;
+    for (size_t i = 0; i < team.size(); ++i)
     {
-        return 0;
+        if (team[i].isAlive())
+        {
+            active_idx = i;
+            break;
+        }
     }
 
-    return choice - 1;
+    Novit& active_novit = team[active_idx];
+    const std::vector<Skill>& skills = active_novit.getSkills();
+
+    std::cout << "\n--- " << active_novit.getName() << "'s Skills ---\n";
+    for (size_t i = 0; i < skills.size(); ++i)
+    {
+        std::cout << "[" << i + 1 << "] " << skills[i].getName()
+                  << " (Power: " << skills[i].getBasePower()
+                  << ", Acc: " << skills[i].getAccuracy() << "%)";
+
+        if (static_cast<int>(i) == active_novit.getLastUsedSkillIndex())
+        {
+            std::cout << " [LOCKED - Used last turn!]";
+        }
+        std::cout << "\n";
+    }
+
+    int choice = 0;
+    while (true)
+    {
+        std::cout << name << ", choose your skill (1-4): ";
+        std::cin >> choice;
+
+        if (choice < 1 || choice > 4)
+        {
+            std::cout << "Invalid choice! Please enter a number between 1 and 4.\n";
+            continue;
+        }
+
+        int skill_idx = choice - 1;
+        if (skill_idx == active_novit.getLastUsedSkillIndex())
+        {
+            std::cout << "Anti-spam rule! You cannot use the same skill twice in a row!\n";
+            continue;
+        }
+
+        return skill_idx;
+    }
 }
