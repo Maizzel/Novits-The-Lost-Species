@@ -39,6 +39,17 @@ string getHpBar(int current, int max)
     return bar;
 }
 
+string elementToString(Element elem)
+{
+    if (elem == Element::Fire)      return "Fire";
+    if (elem == Element::Water)     return "Water";
+    if (elem == Element::Nature)    return "Nature";
+    if (elem == Element::Earth)     return "Earth";
+    if (elem == Element::Wind)      return "Wind";
+    if (elem == Element::Lightning) return "Lightning";
+    return "None";
+}
+
 void renderBattleScreen(int turn, const string& pName, const Novit& pNovit,
                         const string& bName, const Novit& bNovit,
                         const vector<string>& lastTurnLogs)
@@ -52,7 +63,9 @@ void renderBattleScreen(int turn, const string& pName, const Novit& pNovit,
     cout << Space("[PLAYER] " + pName) << "|   " << "[BOT] " + bName << "\n";
     cout << "------------------------------------+-----------------------------------\n";
 
-    cout << Space("Novit: " + pNovit.getName()) << "|   " << "Novit: " + bNovit.getName() << "\n";
+    string pNovitTitle = "Novit: " + pNovit.getName() + " (" + elementToString(pNovit.getElement()) + ")";
+    string bNovitTitle = "Novit: " + bNovit.getName() + " (" + elementToString(bNovit.getElement()) + ")";
+    cout << Space(pNovitTitle) << "|   " << bNovitTitle << "\n";
 
     string pHp = "HP: " + getHpBar(pNovit.getCurrentHp(), pNovit.getMaxHp()) + " "
                  + to_string(pNovit.getCurrentHp()) + "/" + to_string(pNovit.getMaxHp());
@@ -89,6 +102,37 @@ void renderBattleScreen(int turn, const string& pName, const Novit& pNovit,
     cout << "========================================================================\n";
 }
 
+double getElementMultiplier(Element attackElem, Element defenderElem)
+{
+    if (attackElem == Element::None || defenderElem == Element::None)
+    {
+        return 1.0;
+    }
+
+    if ((attackElem == Element::Fire      && defenderElem == Element::Nature)    ||
+        (attackElem == Element::Nature    && defenderElem == Element::Water)     ||
+        (attackElem == Element::Water     && defenderElem == Element::Fire)      ||
+        (attackElem == Element::Earth     && defenderElem == Element::Lightning) ||
+        (attackElem == Element::Lightning && defenderElem == Element::Wind)      ||
+        (attackElem == Element::Wind      && defenderElem == Element::Earth))
+    {
+        return 1.5;
+    }
+
+    if (attackElem == defenderElem ||
+        (attackElem == Element::Fire      && defenderElem == Element::Water)     ||
+        (attackElem == Element::Nature    && defenderElem == Element::Fire)      ||
+        (attackElem == Element::Water     && defenderElem == Element::Nature)    ||
+        (attackElem == Element::Lightning && defenderElem == Element::Earth)     ||
+        (attackElem == Element::Wind      && defenderElem == Element::Lightning) ||
+        (attackElem == Element::Earth     && defenderElem == Element::Wind))
+    {
+        return 0.5;
+    }
+
+    return 1.0;
+}
+
 void executeTurn(Novit& attacker, Novit& defender, int skillIndex, vector<string>& lastTurnLogs)
 {
     if (attacker.getIsStunned())
@@ -122,9 +166,23 @@ void executeTurn(Novit& attacker, Novit& defender, int skillIndex, vector<string
     }
     else if (type == SkillType::ElementalAttack)
     {
-        int dmg = skill.getBasePower() + attacker.getElementalAttack();
+        int baseDmg = skill.getBasePower() + attacker.getElementalAttack();
+        double multiplier = getElementMultiplier(skill.getElement(), defender.getElement());
+
+        int dmg = static_cast<int>(baseDmg * multiplier);
+
         defender.takeDamage(dmg);
         msg += "Deals " + to_string(dmg) + " elemental damage to " + defender.getName() + "!";
+
+        if (multiplier > 1.0)
+        {
+            msg += " [SUPER EFFECTIVE! x1.5]";
+        }
+        else if (multiplier < 1.0)
+        {
+            msg += " [NOT VERY EFFECTIVE... x0.5]";
+        }
+
         lastTurnLogs.push_back(msg);
     }
     else if (type == SkillType::FlatHeal)
