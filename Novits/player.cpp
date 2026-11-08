@@ -41,22 +41,34 @@ int Player::chooseAction()
     int choice = 0;
     while (true)
     {
-        std::cout << name << ", choose your skill (1-4): ";
-        std::cin >> choice;
-
-        if (choice < 1 || choice > 4)
+        try
         {
-            std::cout << "Invalid choice! Please enter a number between 1 and 4.\n";
-            continue;
-        }
+            std::cout << name << ", choose your skill (1-4): ";
+            std::cin >> choice;
 
-        int skill_idx = choice - 1;
-        if (skill_idx == active_novit.getLastUsedSkillIndex())
+            if (std::cin.fail())
+            {
+                std::cin.clear();
+                std::cin.ignore(1000, '\n');
+                throw std::invalid_argument("Input must be a number, not letters!");
+            }
+
+            if (choice < 1 || choice > 4)
+            {
+                throw std::out_of_range("Skill number must be between 1 and 4!");
+            }
+
+            int skill_idx = choice - 1;
+            if (skill_idx == active_novit.getLastUsedSkillIndex())
+            {
+                throw std::logic_error("Anti-spam rule! You cannot use the same skill twice in a row!");
+            }
+
+            return skill_idx;
+        }
+        catch (const std::exception& e)
         {
-            std::cout << "Anti-spam rule! You cannot use the same skill twice in a row!\n";
-            continue;
+            std::cout << ">> [ERROR] " << e.what() << "\n";
         }
-
-        return skill_idx;
     }
 }
