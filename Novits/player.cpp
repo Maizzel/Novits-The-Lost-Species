@@ -9,27 +9,64 @@ Player::~Player()
 {
 }
 
+static std::string elemToText(Element elem)
+{
+    if (elem == Element::Fire)      return "Fire";
+    if (elem == Element::Water)     return "Water";
+    if (elem == Element::Nature)    return "Nature";
+    if (elem == Element::Earth)     return "Earth";
+    if (elem == Element::Wind)      return "Wind";
+    if (elem == Element::Lightning) return "Lightning";
+    return "None";
+}
+
+static std::string skillDetailsToText(const Skill& s)
+{
+    SkillType t = s.getType();
+    std::string pwr = std::to_string(s.getBasePower());
+    std::string acc = std::to_string(s.getAccuracy()) + "%";
+
+    if (t == SkillType::PhysicalAttack)
+        return "Physical Attack | Power: " + pwr + " | Acc: " + acc;
+    if (t == SkillType::ElementalAttack)
+        return "Elemental (" + elemToText(s.getElement()) + ") | Power: " + pwr + " | Acc: " + acc;
+    if (t == SkillType::FlatHeal)
+        return "Flat Heal: +" + pwr + " HP | Acc: " + acc;
+    if (t == SkillType::PercentHeal)
+        return "Percent Heal: +" + pwr + "% HP | Acc: " + acc;
+    if (t == SkillType::Shield)
+        return "Shield: +" + pwr + " | Acc: " + acc;
+    if (t == SkillType::Stun)
+        return "Stun (1 turn) | Acc: " + acc;
+
+    return "Unknown";
+}
+
 int Player::chooseAction()
 {
-    int active_idx = 0;
-    for (size_t i = 0; i < team.size(); ++i)
-    {
-        if (team[i].isAlive())
-        {
-            active_idx = i;
-            break;
-        }
-    }
-
-    Novit& active_novit = team[active_idx];
+    Novit& active_novit = getActiveNovit();
     const std::vector<Skill>& skills = active_novit.getSkills();
 
-    std::cout << "\n--- " << active_novit.getName() << "'s Skills ---\n";
+    std::cout << "\n--- Your Team ---\n";
+    for (size_t i = 0; i < team.size(); ++i)
+    {
+        std::cout << "[" << i + 1 << "] " << team[i].getName()
+                  << " (" << elemToText(team[i].getElement()) << " | HP: "
+                  << team[i].getCurrentHp() << "/" << team[i].getMaxHp() << ")";
+
+        if (!team[i].isAlive())
+            std::cout << " [FAINTED]";
+        else if (static_cast<int>(i) == active_novit_index)
+            std::cout << " [ACTIVE]";
+
+        std::cout << "\n";
+    }
+
+    std::cout << "\n--- " << active_novit.getName() << "'s Actions ---\n";
     for (size_t i = 0; i < skills.size(); ++i)
     {
         std::cout << "[" << i + 1 << "] " << skills[i].getName()
-                  << " (Power: " << skills[i].getBasePower()
-                  << ", Acc: " << skills[i].getAccuracy() << "%)";
+                  << " (" << skillDetailsToText(skills[i]) << ")";
 
         if (static_cast<int>(i) == active_novit.getLastUsedSkillIndex())
         {
@@ -38,12 +75,23 @@ int Player::chooseAction()
         std::cout << "\n";
     }
 
+    std::cout << "[5] Switch Novit";
+    if (switched_last_turn)
+    {
+        std::cout << " [LOCKED - Switched last turn!]";
+    }
+    else if (countAliveNovits() <= 1)
+    {
+        std::cout << " [LOCKED - No other alive Novits!]";
+    }
+    std::cout << "\n";
+
     int choice = 0;
     while (true)
     {
         try
         {
-            std::cout << name << ", choose your skill (1-4): ";
+            std::cout << name << ", choose your action (1-5): ";
             std::cin >> choice;
 
             if (std::cin.fail())
@@ -53,9 +101,22 @@ int Player::chooseAction()
                 throw std::invalid_argument("Input must be a number, not letters!");
             }
 
-            if (choice < 1 || choice > 4)
+            if (choice < 1 || choice > 5)
             {
-                throw std::out_of_range("Skill number must be between 1 and 4!");
+                throw std::out_of_range("Action number must be between 1 and 5!");
+            }
+
+            if (choice == 5)
+            {
+                if (switched_last_turn)
+                {
+                    throw std::logic_error("Anti-spam rule! You cannot switch Novits twice in a row!");
+                }
+                if (countAliveNovits() <= 1)
+                {
+                    throw std::logic_error("You have no other alive Novits to switch into!");
+                }
+                return 4;
             }
 
             int skill_idx = choice - 1;

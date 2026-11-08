@@ -10,6 +10,8 @@ class Trainer
     protected:
         std::string name;
         std::vector<Novit> team;
+        int active_novit_index;
+        bool switched_last_turn;
 
     public:
         Trainer(std::string trainer_name);
@@ -19,10 +21,19 @@ class Trainer
         void addNovitToTeam(const Novit& novit);
         void printTeam() const;
 
-        Novit& getNovit(int index);
+Novit& getNovit(int index);
         int getTeamSize() const;
 
+        Novit& getActiveNovit();
+        int getActiveNovitIndex() const;
+        void setActiveNovitIndex(int index);
+
+        bool hasNovitWithName(const std::string& novit_name) const;
         bool hasAliveNovits() const;
+        int countAliveNovits() const;
+
+        bool getSwitchedLastTurn() const;
+        void setSwitchedLastTurn(bool switched);
 
         virtual int chooseAction() = 0;
 };
