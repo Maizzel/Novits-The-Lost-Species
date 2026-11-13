@@ -21,12 +21,14 @@ class Trainer
         void addNovitToTeam(const Novit& novit);
         void printTeam() const;
 
-Novit& getNovit(int index);
+        Novit& getNovit(int index);
         int getTeamSize() const;
 
         Novit& getActiveNovit();
         int getActiveNovitIndex() const;
         void setActiveNovitIndex(int index);
+
+        void moveNovitToTop(int index);
 
         bool hasNovitWithName(const std::string& novit_name) const;
         bool hasAliveNovits() const;

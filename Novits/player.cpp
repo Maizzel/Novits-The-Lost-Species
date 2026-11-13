@@ -37,7 +37,7 @@ static std::string skillDetailsToText(const Skill& s)
     if (t == SkillType::Shield)
         return "Shield: +" + pwr + " | Acc: " + acc;
     if (t == SkillType::Stun)
-        return "Stun (1 turn) | Acc: " + acc;
+        return "Stun (2 turns) | Acc: " + acc;
 
     return "Unknown";
 }
@@ -84,21 +84,29 @@ int Player::chooseAction()
     {
         std::cout << " [LOCKED - No other alive Novits!]";
     }
-    std::cout << "\n";
+    std::cout << "\n[ff] Surrender (Forfeit match)\n";
 
     int choice = 0;
     while (true)
     {
         try
         {
-            std::cout << name << ", choose your action (1-5): ";
+            std::cout << name << ", choose your action (1-5 or ff): ";
             std::cin >> choice;
 
             if (std::cin.fail())
             {
                 std::cin.clear();
+                std::string textInput;
+                std::cin >> textInput;
                 std::cin.ignore(1000, '\n');
-                throw std::invalid_argument("Input must be a number, not letters!");
+
+                if (textInput == "ff" || textInput == "FF")
+                {
+                    return -2;
+                }
+
+                throw std::invalid_argument("Input must be a number (1-5) or 'ff'!");
             }
 
             if (choice < 1 || choice > 5)

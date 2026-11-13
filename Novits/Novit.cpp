@@ -3,7 +3,7 @@
 
 Novit::Novit()
     : novit_name("Unknown"), element(Element::None), max_hp(100), current_hp(100),
-      elemental_attack(6), physical_attack(7), speed(40), shield(0), is_stunned(false),
+      elemental_attack(6), physical_attack(7), speed(40), shield(0), stun_duration(0),
       last_used_skill_index(-1)
 {
 }
@@ -11,7 +11,7 @@ Novit::Novit()
 Novit::Novit(std::string name, Element elem, int max_hp, int elem_atk, int phys_atk, int speed)
     : novit_name(name), element(elem), max_hp(max_hp), current_hp(max_hp),
       elemental_attack(elem_atk), physical_attack(phys_atk), speed(speed), shield(0),
-      is_stunned(false), last_used_skill_index(-1)
+      stun_duration(0), last_used_skill_index(-1)
 {
 }
 
@@ -109,14 +109,22 @@ int Novit::getShield() const
     return shield;
 }
 
-void Novit::setStunned(bool stunned)
+void Novit::applyStun(int turns)
 {
-    is_stunned = stunned;
+    stun_duration = turns;
 }
 
-bool Novit::getIsStunned() const
+int Novit::getStunDuration() const
 {
-    return is_stunned;
+    return stun_duration;
+}
+
+void Novit::reduceStun()
+{
+    if (stun_duration > 0)
+    {
+        stun_duration--;
+    }
 }
 
 void Novit::setLastUsedSkillIndex(int index)

@@ -78,6 +78,26 @@ void Trainer::setActiveNovitIndex(int index)
     }
 }
 
+void Trainer::moveNovitToTop(int index)
+{
+    if (index <= 0 || index >= static_cast<int>(team.size()))
+    {
+        return;
+    }
+
+    Novit oldActive = team[0];
+    Novit newActive = team[index];
+
+    for (int i = index; i < static_cast<int>(team.size()) - 1; i++)
+    {
+        team[i] = team[i + 1];
+    }
+
+    team[0] = newActive;
+    team[team.size() - 1] = oldActive;
+    active_novit_index = 0;
+}
+
 bool Trainer::hasNovitWithName(const std::string& novit_name) const
 {
     for (size_t i = 0; i < team.size(); i++)

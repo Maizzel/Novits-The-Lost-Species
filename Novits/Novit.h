@@ -16,7 +16,7 @@ class Novit
         int speed;
         std::vector<Skill> skills;
         int shield;
-        bool is_stunned;
+        int stun_duration;
         int last_used_skill_index;
 
     public:
@@ -42,8 +42,10 @@ class Novit
         void healPercent(int percent);
         void setShield(int amount);
         int getShield() const;
-        void setStunned(bool stunned);
-        bool getIsStunned() const;
+
+        void applyStun(int turns);
+        int getStunDuration() const;
+        void reduceStun();
 
         bool operator<(const Novit& other) const;
 

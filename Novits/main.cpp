@@ -67,8 +67,7 @@ double getElementMultiplier(Element attackElem, Element defenderElem)
         return 1.5;
     }
 
-    if (attackElem == defenderElem ||
-        (attackElem == Element::Fire      && defenderElem == Element::Water)     ||
+    if ((attackElem == Element::Fire      && defenderElem == Element::Water)     ||
         (attackElem == Element::Nature    && defenderElem == Element::Fire)      ||
         (attackElem == Element::Water     && defenderElem == Element::Nature)    ||
         (attackElem == Element::Lightning && defenderElem == Element::Earth)     ||
@@ -81,7 +80,14 @@ double getElementMultiplier(Element attackElem, Element defenderElem)
     return 1.0;
 }
 
-void draftTeams(Trainer* player, Trainer* bot)
+void waitForEnter(string message)
+{
+    cout << "\n" << message;
+    cin.ignore(1000, '\n');
+    cin.get();
+}
+
+void draftTeams(Trainer* player, Trainer* opponent, bool isPvP)
 {
     system("cls");
     cout << "========================================================================\n";
@@ -102,7 +108,7 @@ void draftTeams(Trainer* player, Trainer* bot)
     {
         try
         {
-            cout << "Pick Novit #" << (player->getTeamSize() + 1) << " (enter ID 1-18): ";
+            cout << player->getName() << ", pick Novit #" << (player->getTeamSize() + 1) << " (enter ID 1-18): ";
             int id;
             cin >> id;
 
@@ -125,7 +131,7 @@ void draftTeams(Trainer* player, Trainer* bot)
             }
 
             player->addNovitToTeam(chosen);
-            cout << ">> Added " << chosen.getName() << " to your team!\n";
+            cout << ">> Added " << chosen.getName() << " to " << player->getName() << "'s team!\n";
         }
         catch (const exception& e)
         {
@@ -133,13 +139,54 @@ void draftTeams(Trainer* player, Trainer* bot)
         }
     }
 
-    while (bot->getTeamSize() < 4)
+    if (isPvP)
     {
-        int randomId = (rand() % 18) + 1;
-        Novit botPick = NovitDatabase::getNovitById(randomId);
-        if (!bot->hasNovitWithName(botPick.getName()))
+        cout << "\n------------------------------------------------------------------------\n";
+        while (opponent->getTeamSize() < 4)
         {
-            bot->addNovitToTeam(botPick);
+            try
+            {
+                cout << opponent->getName() << ", pick Novit #" << (opponent->getTeamSize() + 1) << " (enter ID 1-18): ";
+                int id;
+                cin >> id;
+
+                if (cin.fail())
+                {
+                    cin.clear();
+                    cin.ignore(1000, '\n');
+                    throw invalid_argument("Input must be a number, not letters!");
+                }
+
+                if (id < 1 || id > 18)
+                {
+                    throw out_of_range("ID must be between 1 and 18!");
+                }
+
+                Novit chosen = NovitDatabase::getNovitById(id);
+                if (opponent->hasNovitWithName(chosen.getName()))
+                {
+                    throw logic_error("You already have " + chosen.getName() + " in your team! Pick a different Novit.");
+                }
+
+                opponent->addNovitToTeam(chosen);
+                cout << ">> Added " << chosen.getName() << " to " << opponent->getName() << "'s team!\n";
+            }
+            catch (const exception& e)
+            {
+                cout << ">> [ERROR] " << e.what() << "\n";
+            }
+        }
+    }
+    else
+    {
+        while (opponent->getTeamSize() < 4)
+        {
+            int randomId = (rand() % 18) + 1;
+            Novit botPick = NovitDatabase::getNovitById(randomId);
+            if (!opponent->hasNovitWithName(botPick.getName()))
+            {
+                opponent->addNovitToTeam(botPick);
+            }
         }
     }
 }
@@ -202,19 +249,19 @@ int chooseSwitchTarget(Trainer* player, bool allowCancel)
     }
 }
 
-void renderBattleScreen(int turn, Trainer* player, Trainer* bot, const vector<string>& lastTurnLogs)
+void renderBattleScreen(int turn, Trainer* player, Trainer* opponent, const vector<string>& lastTurnLogs)
 {
     system("cls");
 
     Novit& pNovit = player->getActiveNovit();
-    Novit& bNovit = bot->getActiveNovit();
+    Novit& bNovit = opponent->getActiveNovit();
 
     cout << "========================================================================\n";
     cout << "                 NOVITS: THE LOST SPECIES (4v4) - TURN " << turn << "\n";
     cout << "========================================================================\n\n";
 
-    string pHeader = "[PLAYER] " + player->getName() + " (Alive: " + to_string(player->countAliveNovits()) + "/4)";
-    string bHeader = "[BOT] " + bot->getName() + " (Alive: " + to_string(bot->countAliveNovits()) + "/4)";
+    string pHeader = "[P1] " + player->getName() + " (Alive: " + to_string(player->countAliveNovits()) + "/4)";
+    string bHeader = "[P2] " + opponent->getName() + " (Alive: " + to_string(opponent->countAliveNovits()) + "/4)";
     cout << Space(pHeader) << "|   " << bHeader << "\n";
     cout << "------------------------------------+-----------------------------------\n";
 
@@ -238,13 +285,13 @@ void renderBattleScreen(int turn, Trainer* player, Trainer* bot, const vector<st
 
     string pStatus = "Status: ";
     if (pNovit.getShield() > 0) pStatus += "[SHIELD: " + to_string(pNovit.getShield()) + "] ";
-    if (pNovit.getIsStunned())  pStatus += "[STUNNED] ";
-    if (pNovit.getShield() == 0 && !pNovit.getIsStunned()) pStatus += "OK";
+    if (pNovit.getStunDuration() > 0)  pStatus += "[STUNNED (" + to_string(pNovit.getStunDuration()) + " turns)] ";
+    if (pNovit.getShield() == 0 && pNovit.getStunDuration() == 0) pStatus += "OK";
 
     string bStatus = "Status: ";
     if (bNovit.getShield() > 0) bStatus += "[SHIELD: " + to_string(bNovit.getShield()) + "] ";
-    if (bNovit.getIsStunned())  bStatus += "[STUNNED] ";
-    if (bNovit.getShield() == 0 && !bNovit.getIsStunned()) bStatus += "OK";
+    if (bNovit.getStunDuration() > 0)  bStatus += "[STUNNED (" + to_string(bNovit.getStunDuration()) + " turns)] ";
+    if (bNovit.getShield() == 0 && bNovit.getStunDuration() == 0) bStatus += "OK";
 
     cout << Space(pStatus) << "|   " << bStatus << "\n";
     cout << "========================================================================\n";
@@ -259,10 +306,10 @@ void renderBattleScreen(int turn, Trainer* player, Trainer* bot, const vector<st
 
 void executeTurn(Novit& attacker, Novit& defender, int skillIndex, vector<string>& lastTurnLogs)
 {
-    if (attacker.getIsStunned())
+    if (attacker.getStunDuration() > 0)
     {
         lastTurnLogs.push_back(">> " + attacker.getName() + " is STUNNED and skips the turn!");
-        attacker.setStunned(false);
+        attacker.applyStun(0);
         return;
     }
 
@@ -322,8 +369,8 @@ void executeTurn(Novit& attacker, Novit& defender, int skillIndex, vector<string
     }
     else if (type == SkillType::Stun)
     {
-        defender.setStunned(true);
-        msg += defender.getName() + " is now STUNNED for the next turn!";
+        defender.applyStun(2);
+        msg += defender.getName() + " is now STUNNED for 2 turns!";
         lastTurnLogs.push_back(msg);
     }
 }
@@ -332,106 +379,196 @@ int main()
 {
     srand(static_cast<unsigned int>(time(NULL)));
 
-    Trainer* player = new Player("Maciej");
-    Trainer* bot = new EnemyBot("Ash (AI)");
+    system("cls");
+    cout << "========================================================================\n";
+    cout << "                      NOVITS: THE LOST SPECIES                          \n";
+    cout << "========================================================================\n\n";
+    cout << "[1] Player vs Bot\n";
+    cout << "[2] Player vs Player (1v1 on one screen)\n\n";
 
-    draftTeams(player, bot);
+    int mode = 0;
+    while (true)
+    {
+        try
+        {
+            cout << "Choose mode (1-2): ";
+            cin >> mode;
+
+            if (cin.fail())
+            {
+                cin.clear();
+                cin.ignore(1000, '\n');
+                throw invalid_argument("Input must be a number, not letters!");
+            }
+            if (mode != 1 && mode != 2)
+            {
+                throw out_of_range("Choice must be 1 or 2!");
+            }
+            break;
+        }
+        catch (const exception& e)
+        {
+            cout << ">> [ERROR] " << e.what() << "\n";
+        }
+    }
+
+    bool isPvP = (mode == 2);
+
+    string name1;
+    cout << "Enter Player 1 nickname: ";
+    cin >> name1;
+    Trainer* player = new Player(name1);
+
+    Trainer* bot = nullptr;
+    if (isPvP)
+    {
+        string name2;
+        cout << "Enter Player 2 nickname: ";
+        cin >> name2;
+        bot = new Player(name2);
+    }
+    else
+    {
+        bot = new EnemyBot("Ash (AI)");
+    }
+
+    draftTeams(player, bot, isPvP);
 
     vector<string> lastTurnLogs;
+
+    bool isPlayerTurn = !(player->getActiveNovit() < bot->getActiveNovit());
+    bool switchedJustHappened = false;
+
     lastTurnLogs.push_back("Battle started! " + player->getActiveNovit().getName()
                            + " vs " + bot->getActiveNovit().getName() + "!");
 
     int turn = 1;
     while (player->hasAliveNovits() && bot->hasAliveNovits())
     {
-        int playerAction = -1;
-        int switchTargetIdx = -1;
+        Trainer* current = isPlayerTurn ? player : bot;
+        Trainer* enemy   = isPlayerTurn ? bot : player;
 
-        while (true)
+        if (current->getActiveNovit().getStunDuration() > 0)
         {
             renderBattleScreen(turn, player, bot, lastTurnLogs);
-            playerAction = player->chooseAction();
+            waitForEnter(">> " + current->getActiveNovit().getName() + " is STUNNED! Press ENTER to skip turn...");
 
-            if (playerAction == 4)
+            lastTurnLogs.clear();
+            lastTurnLogs.push_back(">> " + current->getActiveNovit().getName() + " was STUNNED and skipped the turn!");
+            current->getActiveNovit().reduceStun();
+
+            if (switchedJustHappened)
             {
-                switchTargetIdx = chooseSwitchTarget(player, true);
-                if (switchTargetIdx == -1)
-                {
-                    continue;
-                }
+                switchedJustHappened = false;
+                isPlayerTurn = !(player->getActiveNovit() < bot->getActiveNovit());
             }
-            break;
+            else
+            {
+                isPlayerTurn = !isPlayerTurn;
+            }
+            turn++;
+            continue;
         }
 
-        int botSkillIdx = bot->chooseAction();
-        lastTurnLogs.clear();
+        int action = -1;
+        int switchTargetIdx = -1;
 
-        if (playerAction == 4)
+        if (isPlayerTurn || isPvP)
         {
-            string oldName = player->getActiveNovit().getName();
+            while (true)
+            {
+                renderBattleScreen(turn, player, bot, lastTurnLogs);
+                action = current->chooseAction();
 
-            player->getActiveNovit().setStunned(false);
-            player->setActiveNovitIndex(switchTargetIdx);
-            player->setSwitchedLastTurn(true);
-
-            lastTurnLogs.push_back(">> " + player->getName() + " switched out " + oldName
-                                   + " and sent in " + player->getActiveNovit().getName() + "!");
-
-            executeTurn(bot->getActiveNovit(), player->getActiveNovit(), botSkillIdx, lastTurnLogs);
+                if (action == 4)
+                {
+                    switchTargetIdx = chooseSwitchTarget(current, true);
+                    if (switchTargetIdx == -1)
+                    {
+                        continue;
+                    }
+                }
+                break;
+            }
         }
         else
         {
-            player->setSwitchedLastTurn(false);
+            renderBattleScreen(turn, player, bot, lastTurnLogs);
+            waitForEnter(">> Now it's " + current->getName() + "'s turn! Press ENTER to see opponent's move...");
+            action = current->chooseAction();
+        }
 
-            Novit& pNovit = player->getActiveNovit();
-            Novit& bNovit = bot->getActiveNovit();
+        lastTurnLogs.clear();
 
-            if (pNovit < bNovit)
+        if (action == -2)
+        {
+            for (int i = 0; i < current->getTeamSize(); i++)
             {
-                executeTurn(bNovit, pNovit, botSkillIdx, lastTurnLogs);
-                if (pNovit.isAlive())
+                current->getNovit(i).setShield(0);
+                current->getNovit(i).takeDamage(9999);
+            }
+            lastTurnLogs.push_back(">> [SURRENDER] " + current->getName() + " forfeited the match!");
+            turn++;
+            break;
+        }
+
+        if (action == 4)
+        {
+            string oldName = current->getActiveNovit().getName();
+            current->getActiveNovit().applyStun(0);
+
+            current->moveNovitToTop(switchTargetIdx);
+            current->setSwitchedLastTurn(true);
+
+            lastTurnLogs.push_back(">> " + current->getName() + " switched out " + oldName
+                                   + " (moved to bottom) and sent in " + current->getActiveNovit().getName() + "!");
+
+            isPlayerTurn = !isPlayerTurn;
+            switchedJustHappened = true;
+        }
+        else
+        {
+            current->setSwitchedLastTurn(false);
+            executeTurn(current->getActiveNovit(), enemy->getActiveNovit(), action, lastTurnLogs);
+
+            if (!enemy->getActiveNovit().isAlive())
+            {
+                lastTurnLogs.push_back(">> [KO!] " + enemy->getName() + "'s " + enemy->getActiveNovit().getName() + " fainted!");
+                switchedJustHappened = false;
+
+                if (enemy->hasAliveNovits())
                 {
-                    executeTurn(pNovit, bNovit, playerAction, lastTurnLogs);
+                    for (int i = 0; i < enemy->getTeamSize(); i++)
+                    {
+                        if (enemy->getNovit(i).isAlive())
+                        {
+                            enemy->moveNovitToTop(i);
+                            enemy->setSwitchedLastTurn(false);
+                            lastTurnLogs.push_back(">> " + enemy->getName() + " automatically sends out " + enemy->getActiveNovit().getName() + "!");
+                            break;
+                        }
+                    }
+
+                    isPlayerTurn = !(player->getActiveNovit() < bot->getActiveNovit());
                 }
             }
             else
             {
-                executeTurn(pNovit, bNovit, playerAction, lastTurnLogs);
-                if (bNovit.isAlive())
+                if (switchedJustHappened)
                 {
-                    executeTurn(bNovit, pNovit, botSkillIdx, lastTurnLogs);
-                }
-            }
-        }
+                    switchedJustHappened = false;
+                    bool fasterIsPlayer = !(player->getActiveNovit() < bot->getActiveNovit());
 
-        if (!bot->getActiveNovit().isAlive())
-        {
-            lastTurnLogs.push_back(">> [KO!] Bot's " + bot->getActiveNovit().getName() + " fainted!");
-            if (bot->hasAliveNovits())
-            {
-                for (int i = 0; i < bot->getTeamSize(); i++)
-                {
-                    if (bot->getNovit(i).isAlive())
+                    if (fasterIsPlayer == isPlayerTurn)
                     {
-                        bot->setActiveNovitIndex(i);
-                        lastTurnLogs.push_back(">> Bot sends out " + bot->getActiveNovit().getName() + "!");
-                        break;
+                        lastTurnLogs.push_back(">> [SPEED!] " + current->getActiveNovit().getName() + " is faster and gets a 2nd turn in a row!");
                     }
+                    isPlayerTurn = fasterIsPlayer;
                 }
-            }
-        }
-
-        if (!player->getActiveNovit().isAlive())
-        {
-            lastTurnLogs.push_back(">> [KO!] Your " + player->getActiveNovit().getName() + " fainted!");
-            if (player->hasAliveNovits())
-            {
-                renderBattleScreen(turn, player, bot, lastTurnLogs);
-                cout << "\n>> Your Novit fainted! You must send out another one:\n";
-                int nextIdx = chooseSwitchTarget(player, false);
-                player->setActiveNovitIndex(nextIdx);
-                player->setSwitchedLastTurn(false);
-                lastTurnLogs.push_back(">> You sent out " + player->getActiveNovit().getName() + "!");
+                else
+                {
+                    isPlayerTurn = !isPlayerTurn;
+                }
             }
         }
 
@@ -447,7 +584,7 @@ int main()
     }
     else
     {
-        cout << "   DEFEAT! " << bot->getName() << " wins the battle!\n";
+        cout << "   VICTORY! " << bot->getName() << " wins the battle!\n";
     }
     cout << "   Final State -> " << player->getActiveNovit() << "  VS  " << bot->getActiveNovit() << "\n";
     cout << "========================================================================\n";
