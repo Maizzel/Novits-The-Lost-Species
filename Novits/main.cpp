@@ -429,7 +429,7 @@ int main()
     }
     else
     {
-        bot = new EnemyBot("Ash (AI)");
+        bot = new EnemyBot("Novit's Master (AI)");
     }
 
     draftTeams(player, bot, isPvP);
