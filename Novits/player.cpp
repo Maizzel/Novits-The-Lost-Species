@@ -47,7 +47,7 @@ int Player::chooseAction()
     Novit& active_novit = getActiveNovit();
     const std::vector<Skill>& skills = active_novit.getSkills();
 
-    std::cout << "\n--- Your Team ---\n";
+    std::cout << "\n--- " << name << "'s Team ---\n";
     for (size_t i = 0; i < team.size(); ++i)
     {
         std::cout << "[" << i + 1 << "] " << team[i].getName()

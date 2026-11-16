@@ -49,19 +49,25 @@ The project is divided into header (`.h`) and implementation (`.cpp`) files insi
 ## 3. How to Compile and Run
 
 ### Option 1: Using Code::Blocks (Recommended)
-
 1. Clone or download this repository.
 2. Open the project file `Novits/Novits.cbp` in **Code::Blocks**.
 3. Press **F9** (*Build and run*) to compile and start the game.
 
-### Option 2: Using g++ in Terminal
+### Option 2: Direct Run via Novits.exe (No IDE required)
+A standalone, pre-compiled Windows executable is included in the `Novits/` folder. You can run it in two ways:
+1. **From Terminal (PowerShell / CMD / VS Code Terminal):**
+   ```powershell
+   cd Novits
+   .\Novits.exe
+   ```
+2. **Directly from Windows Explorer:** Open the `Novits/` folder and double-click `Novits.exe`.
 
-Navigate to the `Novits/` folder and compile all `.cpp` files:
-
-```bash
+### Option 3: Using g++ in Terminal
+Navigate to the `Novits/` folder and compile all `.cpp` files into a standalone executable:
+```powershell
 cd Novits
-g++ -std=c++11 main.cpp Novit.cpp novitdatabase.cpp player.cpp enemybot.cpp trainer.cpp skill.cpp -o Novits
-./Novits
+g++ -std=c++11 -static *.cpp -o Novits.exe
+.\Novits.exe
 ```
 
 ## 4. Gameplay Example
